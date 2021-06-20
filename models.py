@@ -4,6 +4,36 @@ db = SQLAlchemy()
 
 # Models
 
+class Show(db.Model):
+    
+    __tablename__ = 'shows'
+
+    id = db.Column(db.Integer, primary_key=True)
+    artist_id = db.Column(db.Integer, db.ForeignKey(
+        'artists.id'), nullable=False)
+    venue_id = db.Column(db.Integer, db.ForeignKey(
+        'venues.id'), nullable=False)
+    start_time = db.Column(db.DateTime, nullable=False)
+
+    def show_artist(self):
+        
+        return {
+            'artist_id': self.artist_id,
+            'artist_name': self.artist.name,
+            'artist_image_link': self.artist.image_link,
+            # convert datetime to string
+            'start_time': self.start_time.strftime('%Y-%m-%d %H:%M:%S')
+        }
+
+    def show_venue(self):
+        
+        return {
+            'venue_id': self.venue_id,
+            'venue_name': self.venue.name,
+            'venue_image_link': self.venue.image_link,
+            # convert datetime to string
+            'start_time': self.start_time.strftime('%Y-%m-%d %H:%M:%S')
+        }
 
 class Artist(db.Model):
     
@@ -20,9 +50,7 @@ class Artist(db.Model):
     facebook_link = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean, nullable=False, default=False)
     seeking_description = db.Column(db.String(120))
-
-    venues = db.relationship('Venue', secondary='shows')
-    shows = db.relationship('Show', backref=('artists'))
+    shows = db.relationship('Show', backref=('artists'), lazy=True)
 
     def to_dict(self):
         
@@ -60,9 +88,7 @@ class Venue(db.Model):
     website = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean, nullable=False, default=False)
     seeking_description = db.Column(db.String(120))
-
-    artists = db.relationship('Artist', secondary='shows')
-    shows = db.relationship('Show', backref=('venues'))
+    shows = db.relationship('Show', backref=('venues'), lazy=True)
 
     def to_dict(self):
         
@@ -83,38 +109,3 @@ class Venue(db.Model):
 
     def __repr__(self):
         return f'<Venue {self.id} {self.name}>'
-
-
-class Show(db.Model):
-    
-    __tablename__ = 'shows'
-
-    id = db.Column(db.Integer, primary_key=True)
-    artist_id = db.Column(db.Integer, db.ForeignKey(
-        'artists.id'), nullable=False)
-    venue_id = db.Column(db.Integer, db.ForeignKey(
-        'venues.id'), nullable=False)
-    start_time = db.Column(db.DateTime, nullable=False)
-
-    venue = db.relationship('Venue')
-    artist = db.relationship('Artist')
-
-    def show_artist(self):
-        
-        return {
-            'artist_id': self.artist_id,
-            'artist_name': self.artist.name,
-            'artist_image_link': self.artist.image_link,
-            # convert datetime to string
-            'start_time': self.start_time.strftime('%Y-%m-%d %H:%M:%S')
-        }
-
-    def show_venue(self):
-        
-        return {
-            'venue_id': self.venue_id,
-            'venue_name': self.venue.name,
-            'venue_image_link': self.venue.image_link,
-            # convert datetime to string
-            'start_time': self.start_time.strftime('%Y-%m-%d %H:%M:%S')
-        }
